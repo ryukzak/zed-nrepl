@@ -1,6 +1,6 @@
 .PHONY: all repl zrepl format-fix format-check lint test
 
-all: format lint test
+all: format-fix lint test
 
 repl:
 	clojure -M:test:nrepl:refactor
