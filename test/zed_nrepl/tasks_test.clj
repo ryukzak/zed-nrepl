@@ -1,6 +1,6 @@
 (ns zed-nrepl.tasks-test
-  (:require [clojure.test :refer [deftest testing is]]
-            [clojure.java.io :as io]
+  (:require [clojure.java.io :as io]
+            [clojure.test :refer [deftest testing is]]
             [zed-nrepl.tasks :as tasks]))
 
 ;; Test constants

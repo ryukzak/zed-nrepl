@@ -1,10 +1,14 @@
 (ns zed-nrepl.core
   (:require
    [bidi.ring :refer [make-handler]]
+   [clojure.core.async :refer [<!!]]
+   [clojure.edn :as edn]
+   [clojure.java.io :as io]
    [clojure.string :as str]
    [nrepl.server :as nrepl.server]
    [ring.adapter.jetty :refer [run-jetty]]
    [ring.middleware.json :refer [wrap-json-body wrap-json-response]]
+   [ring.util.io]
    [ring.util.response :refer [response]]
    [zed-nrepl.misc :as misc]
    [zed-nrepl.repl :as repl]
@@ -12,23 +16,60 @@
 
 (declare nrepl-server)
 
+(defn promt [ns code]
+  (let [max-code-len 60
+        code (str/trim code)
+        code (if (< (count code) max-code-len)
+               code
+               (str (subs code 0 max-code-len) "..."))]
+    (str ns "=> " code "\n")))
+
+(defn repl-out [msg]
+  (cond
+    (:out msg) (:out msg)
+
+    (and (string? (:value msg))
+         (str/starts-with? (:value msg) "#"))
+    (let [edn (str/replace-first (:value msg) #"^[^ ]+ " "")]
+      (try
+        (misc/pp-return (edn/read-string edn))
+        (catch Exception _ (misc/return-suffix (:value msg)))))
+
+    (contains? msg :value)
+    (misc/pp-return (edn/read-string (:value msg)))
+
+    (:err msg) (str "Error:\n"
+                    (->> (str/split (:err msg) #"\n")
+                         (map #(str "    " %))
+                         (str/join "\n"))
+                    "\n")
+    (:ex msg) (str "Exception:\n"
+                   "    " (:ex msg) "\n"
+                   "Root exception:\n"
+                   "    " (:root-ex msg) "\n")
+
+    (= (:status msg) ["done"]) nil
+
+    :else (str msg "\n")))
+
 (defn eval-handler [request]
   (let [code (or (some-> request :body :code-base64 misc/decode64)
                  (-> request :body :code))
         file (some-> request :body :file)
-        result (repl/eval-by-nrepl
-                {:host "localhost" :port (:port @nrepl-server)}
-                {:file file :code code})
-
-        promt (str/trim (str (:ns result) "=> " code))]
-
-    (->> [promt
-          (->> (:value result)
-               (map misc/pp)
-               (str/join "\n"))
-          (misc/pp (dissoc result :id :session :value))]
-         (str/join "\n")
-         response)))
+        {ns :ns
+         ch :chan} (repl/eval-by-nrepl-chan
+                    {:host "localhost" :port (:port @nrepl-server)}
+                    {:file file :code code})]
+    (response (ring.util.io/piped-input-stream
+               (fn [ostream]
+                 (let [w (io/make-writer ostream {})]
+                   (.write w (promt ns code))
+                   (loop [msg (<!! ch)]
+                     (when msg
+                       (when-let [out (repl-out msg)]
+                         (.write w out)
+                         (.flush w))
+                       (recur (<!! ch))))))))))
 
 (def routes
   ["/" {"eval" {:post #'eval-handler}}])
@@ -52,7 +93,7 @@
   (stop-nrepl-server)
   (reset! nrepl-server
           (let [server (nrepl.server/start-server)]
-            (spit ".nrepl-port" (:port server))
+            (repl/spit-port (:port server))
             (println "nREPL server started on port" (:port server))
             server)))
 
@@ -67,7 +108,9 @@
 
 (defn start-bridge-server []
   (stop-bridge-server)
-  (reset! bridge-server (run-jetty app {:port 3000 :join? false})))
+  (reset! bridge-server (run-jetty app {:port 3000
+                                        :join? false
+                                        :output-buffer-size 1})))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 

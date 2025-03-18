@@ -1,6 +1,7 @@
 (ns zed-nrepl.misc
   (:require
    [clojure.pprint :as pprint]
+   [clojure.string :as str]
    [zed-nrepl.misc :as misc])
   (:import
    java.util.Base64))
@@ -11,3 +12,15 @@
 
 (defn pp [m]
   (with-out-str (pprint/pprint m)))
+
+(def return-symbol "⏎")
+
+(defn return-suffix [s]
+  (str (str/trimr s)
+       return-symbol
+       "\n"))
+
+(defn pp-return [m]
+  (return-suffix
+   (binding [pprint/*print-right-margin* 140]
+     (with-out-str (pprint/pprint m)))))
