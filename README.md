@@ -68,3 +68,9 @@ BSD 2-Clause License. See [LICENSE](LICENSE) for details.
 ## Contributing
 
 Contributions are welcome! Please feel free to submit a Pull Request or open an issue to discuss improvements.
+
+## TODO:
+
+- [ ] Evaluate current file
+- [ ] Evaluate current top-level expression.
+- [ ] Evaluate current/previous symbol/sexpr..
