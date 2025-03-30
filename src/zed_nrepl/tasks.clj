@@ -33,7 +33,7 @@
      " }\""],
     :use_new_terminal false,
     :reveal_target "dock",
-    :reveal "always",
+    :reveal "no_focus",
     :show_summary false,
 
     :hide "never",
@@ -57,7 +57,7 @@
      " }\""],
     :use_new_terminal false,
     :reveal_target "dock",
-    :reveal "always",
+    :reveal "no_focus",
     :show_summary false,
 
     :hide "never",
