@@ -73,4 +73,4 @@ Contributions are welcome! Please feel free to submit a Pull Request or open an 
 
 - [ ] Evaluate current file
 - [ ] Evaluate current top-level expression.
-- [ ] Evaluate current/previous symbol/sexpr..
+- [ ] Evaluate current/previous symbol/sexpr...
