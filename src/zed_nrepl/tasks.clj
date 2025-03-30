@@ -39,6 +39,30 @@
     :hide "never",
 
     :shell "system",
+    :allow_concurrent_runs false}
+   "Eval code at point (zed-repl)"
+   {:label "Eval code at point (zed-repl)",
+    :command "curl",
+    :args
+    ["--request"
+     "POST"
+     "http://localhost:3000/eval-at-point"
+     "--header"
+     "'Content-Type: application/json'"
+     "--data"
+     "\"{"
+     "\\\"file\\\": \\\"$ZED_FILE\\\","
+     "\\\"column\\\": \\\"$ZED_COLUMN\\\","
+     "\\\"row\\\": \\\"$ZED_ROW\\\""
+     " }\""],
+    :use_new_terminal false,
+    :reveal_target "dock",
+    :reveal "always",
+    :show_summary false,
+
+    :hide "never",
+
+    :shell "system",
     :allow_concurrent_runs false}})
 
 (defn add-zed-repl-tasks [tasks-file timestamp]

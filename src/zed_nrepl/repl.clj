@@ -3,7 +3,7 @@
    [clojure.core.async :refer [chan  <!! >! go close!]]
    [clojure.edn :as edn]
    [nrepl.core :as nrepl]
-   [zed-nrepl.fs :as fs]))
+   [zed-nrepl.file :as file]))
 
 (defn spit-port [port]
   (spit ".nrepl-port" (str port)))
@@ -41,7 +41,7 @@
 (defn eval-by-nrepl [{host :host port :port timeout :timeout}
                      {file :file code :code}]
   (let [timeout (or timeout 1000)
-        file-ns (fs/extract-namespace-from-file file)]
+        file-ns (file/get-ns file)]
     (with-open [conn (nrepl/connect :host host :port port)]
       (let [client     (nrepl/client conn timeout)
             namespaces (all-repl-namespaces client)
@@ -56,7 +56,7 @@
 (defn eval-by-nrepl-chan [{host :host port :port timeout :timeout}
                           {file :file code :code}]
   (let [timeout (or timeout 1000)
-        file-ns (fs/extract-namespace-from-file file)
+        file-ns (file/get-ns file)
         c       (chan 40)]
     (go
       (with-open [conn (nrepl/connect :host host :port port)]
