@@ -1,12 +1,12 @@
-.PHONY: all repl zrepl format-fix format-check lint test
+.PHONY: all repl zed-repl format-fix format-check lint test
 
 all: format-fix lint test
 
 repl:
 	clojure -M:test:nrepl:refactor
 
-zrepl:
-	clojure -M:test:zrepl
+zed-repl:
+	clojure -M:test:zed-repl
 
 format-fix:
 	clojure -M:format fix

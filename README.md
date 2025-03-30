@@ -18,7 +18,7 @@ Include `zed-nrepl` in your project's `deps.edn` file:
 
 ```clojure
 {:aliases
- {:zrepl
+ {:zed-repl
   {:extra-deps {io.github.ryukzak/zed-nrepl
                 {:git/url "https://github.com/ryukzak/zed-nrepl.git"
                  :git/sha "___________________________________"}}
@@ -30,7 +30,7 @@ Include `zed-nrepl` in your project's `deps.edn` file:
 Run this command in your project directory:
 
 ```bash
-clojure -M:zrepl
+clojure -M:zed-repl
 ```
 
 This will:

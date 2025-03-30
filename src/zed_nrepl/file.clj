@@ -17,7 +17,7 @@
 
 #_(extract-namespace-from-file "./src/zed_nrepl/core.clj")
 
-(defn at-point [file-name col pos]
+(defn at-point [file-name column row]
   (let [content (slurp file-name)
         zloc (z/of-string content
                           {:track-position? true})]
@@ -29,22 +29,22 @@
              zright            (z/right zloc)]
          (cond
            ;; inside
-           (or (< c1 col c2)
+           (or (< c1 column c2)
                (cond
-                 (= c1 col c2) (<= p1 pos p2)
-                 (= c1 col)    (<= p1 pos)
-                 (= col c2)    (<= pos p2)))
+                 (= c1 column c2) (<= p1 row p2)
+                 (= c1 column)    (<= p1 row)
+                 (= column c2)    (<= row p2)))
            (if (or (nil? zdown) ;; not sexp or bracket
-                   (and (= c1 col) (= p1 pos))
-                   (and (= c2 col) (= p2 pos)))
+                   (and (= c1 column) (= p1 row))
+                   (and (= c2 column) (= p2 row)))
              zloc
              (recur zdown))
 
            ;; between sexps or at the last
-           (or (and (= col c2) (< pos p2))
-               (< col c2))
+           (or (and (= column c2) (< row p2))
+               (< column c2))
            zleft
 
            :else (recur zright)))))))
 
-#_(at-point "./src/zed_nrepl/core.clj" 111 36)
+#_(str (at-point "./src/zed_nrepl/core.clj" 1 1))

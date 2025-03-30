@@ -10,6 +10,7 @@
    [ring.middleware.json :refer [wrap-json-body wrap-json-response]]
    [ring.util.io]
    [ring.util.response :refer [response]]
+   [zed-nrepl.file :as file]
    [zed-nrepl.misc :as misc]
    [zed-nrepl.repl :as repl]
    [zed-nrepl.tasks :as tasks]))
@@ -52,6 +53,18 @@
 
     :else (str msg "\n")))
 
+(defn- eval-response [promt ch]
+  (response (ring.util.io/piped-input-stream
+             (fn [ostream]
+               (let [w (io/make-writer ostream {})]
+                 (.write w promt)
+                 (loop [msg (<!! ch)]
+                   (when msg
+                     (when-let [out (repl-out msg)]
+                       (.write w out)
+                       (.flush w))
+                     (recur (<!! ch)))))))))
+
 (defn eval-handler [request]
   (let [code (or (some-> request :body :code-base64 misc/decode64)
                  (-> request :body :code))
@@ -60,19 +73,22 @@
          ch :chan} (repl/eval-by-nrepl-chan
                     {:host "localhost" :port (:port @nrepl-server)}
                     {:file file :code code})]
-    (response (ring.util.io/piped-input-stream
-               (fn [ostream]
-                 (let [w (io/make-writer ostream {})]
-                   (.write w (promt ns code))
-                   (loop [msg (<!! ch)]
-                     (when msg
-                       (when-let [out (repl-out msg)]
-                         (.write w out)
-                         (.flush w))
-                       (recur (<!! ch))))))))))
+    (eval-response (promt ns code) ch)))
+
+(defn eval-at-point-handler [request]
+  (let [file (some-> request :body :file)
+        row (some-> request :body :row Integer/parseInt)
+        column (some-> request :body :column Integer/parseInt)
+        code (str (file/at-point file row column))
+        {ns :ns
+         ch :chan} (repl/eval-by-nrepl-chan
+                    {:host "localhost" :port (:port @nrepl-server)}
+                    {:file file :code code})]
+    (eval-response (promt ns code) ch)))
 
 (def routes
-  ["/" {"eval" {:post #'eval-handler}}])
+  ["/" {"eval" {:post #'eval-handler}
+        "eval-at-point" {:post #'eval-at-point-handler}}])
 
 (def app
   (-> (make-handler routes)

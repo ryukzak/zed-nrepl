@@ -23,7 +23,7 @@
                  "--middleware"
                  "[refactor-nrepl.middleware/wrap-refactor,cider.nrepl/cider-middleware]"]}
 
-  :zrepl
+  :zed-repl
   {:main-opts ["-m" "zed-nrepl.core"]}
 
   :refactor
