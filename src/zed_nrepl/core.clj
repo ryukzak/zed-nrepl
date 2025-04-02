@@ -5,6 +5,7 @@
    [clojure.edn :as edn]
    [clojure.java.io :as io]
    [clojure.string :as str]
+   [clojure.term.colors :as colors]
    [nrepl.server :as nrepl.server]
    [ring.adapter.jetty :refer [run-jetty]]
    [ring.middleware.json :refer [wrap-json-body wrap-json-response]]
@@ -18,12 +19,14 @@
 (declare nrepl-server)
 
 (defn promt [ns code]
-  (let [max-code-len 60
+  (let [max-code-len 160
         code (str/trim code)
         code (if (< (count code) max-code-len)
-               code
-               (str (subs code 0 max-code-len) "..."))]
-    (str ns "=> " code "\n")))
+               (str code)
+               (str (subs code 0 (- max-code-len 10))
+                    "\n... "
+                    (subs code (- (count code) 5))))]
+    (str ns (colors/bold (colors/green "=> ")) code "\n")))
 
 (defn repl-out [msg]
   (cond
@@ -37,7 +40,7 @@
         (catch Exception _ (misc/return-suffix (:value msg)))))
 
     (contains? msg :value)
-    (misc/pp-return (edn/read-string (:value msg)))
+    (colors/bold (misc/pp-return (edn/read-string (:value msg))))
 
     (:err msg) (str "Error:\n"
                     (->> (str/split (:err msg) #"\n")
@@ -79,7 +82,7 @@
   (let [file (some-> request :body :file)
         row (some-> request :body :row Integer/parseInt)
         column (some-> request :body :column Integer/parseInt)
-        code (str (file/at-point file row column))
+        code (with-out-str (pr (file/at-point file row column)))
         {ns :ns
          ch :chan} (repl/eval-by-nrepl-chan
                     {:host "localhost" :port (:port @nrepl-server)}
