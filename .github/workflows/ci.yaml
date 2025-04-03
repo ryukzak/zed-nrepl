@@ -44,6 +44,9 @@ jobs:
     - name: Run Tests
       run: make test
 
+    - run:
+        git config --global --add safe.directory /github/workspace
+
     - name: Tag LATEST
       # if: github.ref == 'refs/heads/main' && success()
       uses: cardinalby/git-tag-action@master
