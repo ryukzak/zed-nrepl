@@ -53,4 +53,4 @@ jobs:
           /repos/${{ github.repository_owner }}/${{ github.event.repository.name }}/git/refs/heads/LATEST \
           -f "sha=${{ github.sha }}" -F "force=true"
       env:
-        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        GH_TOKEN: ${{ secrets.GH_TOKEN }}
