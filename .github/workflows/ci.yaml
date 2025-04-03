@@ -44,14 +44,9 @@ jobs:
     - name: Run Tests
       run: make test
 
-    - name: Create tag
-      uses: actions/github-script@v5
+    - name: Tag LATEST
       # if: github.ref == 'refs/heads/main' && success()
-      with:
-        script: |
-          github.rest.git.createRef({
-            owner: context.repo.owner,
-            repo: context.repo.repo,
-            ref: 'refs/tags/LATEST',
-            sha: context.sha
-          })
+      uses: cardinalby/git-tag-action@master
+      env:
+        TAG: LATEST
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
