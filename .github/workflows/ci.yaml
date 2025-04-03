@@ -50,7 +50,7 @@ jobs:
           --method POST \
           -H "Accept: application/vnd.github+json" \
           -H "X-GitHub-Api-Version: 2022-11-28" \
-          /repos/${{ github.repository_owner }}/${{ github.event.repository.name }/git/tags \
+          /repos/${{ github.repository_owner }}/${{ github.event.repository.name }}/git/tags \
           -f "tag=EDGE" -f "message=edge-version" \
           -f "object=${{ github.sha }}" \
           -f "type=commit" \
