@@ -44,12 +44,14 @@ jobs:
     - name: Run Tests
       run: make test
 
-    - run:
-        git config --global --add safe.directory /github/workspace
-
-    - name: Tag LATEST
-      # if: github.ref == 'refs/heads/main' && success()
-      uses: cardinalby/git-tag-action@master
-      env:
-        TAG: LATEST
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    - name: Create tag
+      uses: actions/github-script@v5
+      with:
+        script: |
+          github.rest.git.createRef({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            ref: 'refs/tags/<tagname>',
+            sha: context.sha
+          })
+        github-token: ${{ secrets.GITHUB_TOKEN }}
