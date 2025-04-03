@@ -44,10 +44,14 @@ jobs:
     - name: Run Tests
       run: make test
 
-    - name: Tag LATEST
+    - name: Create tag
+      uses: actions/github-script@v5
       # if: github.ref == 'refs/heads/main' && success()
-      run: |
-        git config --global user.name 'github-actions[bot]'
-        git config --global user.email 'github-actions[bot]@users.noreply.github.com'
-        git tag -f LATEST
-        git push origin --tags
+      with:
+        script: |
+          github.rest.git.createRef({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            ref: 'refs/tags/LATEST',
+            sha: context.sha
+          })
