@@ -43,20 +43,14 @@ jobs:
 
     - name: Run Tests
       run: make test
-    - name: Create tag
-      uses: actions/github-script@v5
-      with:
-        script: |
-          const { Octokit } = require("@octokit/rest");
-          const octokit = new Octokit({ auth: process.env.GITHUB_TOKEN });
 
-          octokit.git.createRef({
-            owner: context.repo.owner,
-            repo: context.repo.repo,
-            ref: 'refs/tags/<tagname>',
-            sha: context.sha
-          }).catch(error => {
-            core.setFailed(`Action failed with error: ${error}`);
-          });
+    - name: Create tag
+    - run: |
+        gh api \
+          --method PATCH \
+          -H "Accept: application/vnd.github+json" \
+          -H "X-GitHub-Api-Version: 2022-11-28" \
+          /repos/${{ github.repository_owner }}/${{ github.event.repository.name }}/git/refs/heads/LATEST \
+          -f "sha=${{ github.sha }}" -F "force=true"
       env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
