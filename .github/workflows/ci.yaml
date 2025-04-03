@@ -45,7 +45,7 @@ jobs:
       run: make test
 
     - name: Create tag
-    - run: |
+      run: |
         gh api \
           --method PATCH \
           -H "Accept: application/vnd.github+json" \
