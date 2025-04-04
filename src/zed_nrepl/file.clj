@@ -45,6 +45,8 @@
                (< column c2))
            zleft
 
-           :else (recur zright)))))))
+           :else (if zright
+                   (recur zright)
+                   zloc)))))))
 
 #_(str (at-point "./src/zed_nrepl/core.clj" 1 1))

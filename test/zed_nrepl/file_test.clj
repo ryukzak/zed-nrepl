@@ -46,7 +46,10 @@
            (file/at-point "./test/zed_nrepl/file_test.clj" 2 54))))
 
   (is (= '[clojure.test :refer [deftest is testing]]
-         (file/at-point "./test/zed_nrepl/file_test.clj" 2 55))))
+         (file/at-point "./test/zed_nrepl/file_test.clj" 2 55)))
+
+  (is (= :should-be-the-last
+         (file/at-point "./test/zed_nrepl/file_test.clj" 120 55))))
 
 (deftest test-get-ns
   (testing "Extracting namespace from Clojure file content"
@@ -63,3 +66,5 @@
   (testing "Extracting namespace from existing Clojure file"
     (is (string? (file/get-ns "./src/zed_nrepl/core.clj")))
     (is (nil? (file/get-ns "non-existent-file.clj")))))
+
+:should-be-the-last
