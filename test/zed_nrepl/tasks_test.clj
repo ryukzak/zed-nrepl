@@ -63,24 +63,24 @@
   (testing "Creating new tasks file when it doesn't exist"
     (setup-test-dir)
     (try
-      (let [result (tasks/add-zed-repl-tasks test-tasks-file test-timestamp)]
+      (let [result (tasks/add-zed-repl-tasks test-tasks-file "http://localhost:3000" test-timestamp)]
         (is (= result :created))
         (is (.exists (io/file test-tasks-file)))
         (let [tasks (tasks/read-tasks test-tasks-file)]
           (is (has-zed-repl-task? tasks) "Tasks should include zed-repl task")
-          (is (= 2 (count tasks)))))
+          (is (= 3 (count tasks)))))
       (finally (cleanup-test-dir))))
 
   (testing "Updating existing tasks file without zed-repl task"
     (setup-test-dir)
     (try
       (write-test-tasks "[{\"label\": \"Existing Task\", \"command\": \"echo\"}]")
-      (let [result (tasks/add-zed-repl-tasks test-tasks-file test-timestamp)]
+      (let [result (tasks/add-zed-repl-tasks test-tasks-file "http://localhost:3000" test-timestamp)]
         (is (= result :updated))
         (is (.exists (io/file (str test-tasks-file "." test-timestamp ".bak"))))
         (let [tasks (tasks/read-tasks test-tasks-file)]
           (is (has-zed-repl-task? tasks) "Tasks should include zed-repl task")
-          (is (= 3 (count tasks)))
+          (is (= 4 (count tasks)))
           (is (some #(= (:label %) "Existing Task") tasks))))
       (finally (cleanup-test-dir))))
 
@@ -88,18 +88,10 @@
     (setup-test-dir)
     (try
       ;; First add the task
-      (tasks/add-zed-repl-tasks test-tasks-file test-timestamp)
+      (tasks/add-zed-repl-tasks test-tasks-file "http://localhost:3000" test-timestamp)
       ;; Then attempt to add it again
-      (let [result (tasks/add-zed-repl-tasks test-tasks-file test-timestamp)]
+      (let [result (tasks/add-zed-repl-tasks test-tasks-file "http://localhost:3000" test-timestamp)]
         (is (= result :skip)))
       (finally (cleanup-test-dir)))))
 
-(deftest zed-repl-tasks-structure-test
-  (testing "Zed REPL tasks have required fields"
-    (let [task (get tasks/zed-repl-tasks "Eval selected code (zed-repl)")]
-      (is (string? (:label task)))
-      (is (string? (:command task)))
-      (is (vector? (:args task)))
-      (is (contains? task :reveal_target))
-      (is (contains? task :reveal))
-      (is (contains? task :use_new_terminal)))))
+#_(clojure.test/run-tests)

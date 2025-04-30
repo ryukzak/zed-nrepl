@@ -89,9 +89,19 @@
                     {:file file :code code})]
     (eval-response (promt ns code) ch)))
 
+(defn eval-file-handler [request]
+  (let [file (some-> request :body :file)
+        {ns :ns
+         ch :chan} (repl/eval-by-nrepl-chan
+                    {:host "localhost" :port (:port @nrepl-server)}
+                    {:file file :code (slurp file)})]
+    (eval-response (promt ns (format "(eval (slurp %s))" file)) ch)))
+
 (def routes
-  ["/" {"eval" {:post #'eval-handler}
-        "eval-at-point" {:post #'eval-at-point-handler}}])
+  ["/" {"eval" {[:action] {:post #'eval-handler}
+                :post #'eval-handler}
+        "eval-at-point" {:post #'eval-at-point-handler}
+        "eval-file" {:post #'eval-file-handler}}])
 
 (def app
   (-> (make-handler routes)
@@ -135,7 +145,9 @@
 
 (defn -main []
   (println "Add zed-repl to .zed/tasks.json: "
-           (tasks/add-zed-repl-tasks ".zed/tasks.json" (System/currentTimeMillis)))
+           (tasks/add-zed-repl-tasks ".zed/tasks.json"
+                                     "http://localhost:3000"
+                                     (System/currentTimeMillis)))
 
   (println "Start nREPL server")
   (start-nrepl-server)

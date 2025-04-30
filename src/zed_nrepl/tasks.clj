@@ -3,6 +3,7 @@
    [cheshire.core :as json]
    [cheshire.factory :as json.factory]
    [clojure.java.io :as io]
+   [clojure.string :as str]
    [zed-nrepl.tasks :as tasks]))
 
 (defn parse-jsonc [content]
@@ -15,61 +16,56 @@
     (-> (slurp filename)
         (parse-jsonc))))
 
-(def zed-repl-tasks
-  {"Eval selected code (zed-repl)"
-   {:label "Eval selected code (zed-repl)",
-    :command "curl",
-    :args
-    ["--request"
-     "POST"
-     "http://localhost:3000/eval"
-     "--header"
-     "'Content-Type: application/json'"
-     "--data"
-     "\"{"
-     "\\\"file\\\": \\\"$ZED_FILE\\\","
-     "\\\"code_base64\\\": "
-     "\\\"$( echo -n \"$ZED_SELECTED_TEXT\" | base64 )\\\""
-     " }\""],
-    :use_new_terminal false,
-    :reveal_target "dock",
-    :reveal "no_focus",
-    :show_summary false,
+(defn curl-task [base-url task-name path params]
+  {:label (str task-name " (zed-repl)")
+   :command "curl",
+   :args
+   ["--request"
+    "POST"
+    (str base-url path)
+    "--header"
+    "'Content-Type: application/json'"
+    "--data"
+    "\"{"
+    (->> params
+         (map (fn [[k v]]
+                (cond
+                  (str/ends-with? (name k) "_base64")
+                  (str "\\\"" (name k) "\\\": \\\"$( echo -n \"$" v "\" | base64 )\\\"")
+                  :else
+                  (str "\\\"" (name k) "\\\": \\\"$" v "\\\""))))
+         (str/join ","))
+    " }\""],
+   :use_new_terminal false,
+   :reveal_target "dock",
+   :reveal "no_focus",
+   :show_summary false,
+   :hide "never",
+   :shell "system",
+   :allow_concurrent_runs false})
 
-    :hide "never",
+(defn zed-repl-tasks [base-url]
+  [(curl-task base-url
+              "Eval selected code" "/eval"
+              {:file "ZED_FILE"
+               :code_base64 "ZED_SELECTED_TEXT"})
+   (curl-task base-url
+              "Eval code at point" "/eval-at-point"
+              {:file "ZED_FILE"
+               :column "ZED_COLUMN"
+               :row "ZED_ROW"})
+   (curl-task base-url
+              "Eval file" "/eval-file"
+              {:file "ZED_FILE"})])
 
-    :shell "system",
-    :allow_concurrent_runs false}
-   "Eval code at point (zed-repl)"
-   {:label "Eval code at point (zed-repl)",
-    :command "curl",
-    :args
-    ["--request"
-     "POST"
-     "http://localhost:3000/eval-at-point"
-     "--header"
-     "'Content-Type: application/json'"
-     "--data"
-     "\"{"
-     "\\\"file\\\": \\\"$ZED_FILE\\\","
-     "\\\"column\\\": \\\"$ZED_COLUMN\\\","
-     "\\\"row\\\": \\\"$ZED_ROW\\\""
-     " }\""],
-    :use_new_terminal false,
-    :reveal_target "dock",
-    :reveal "no_focus",
-    :show_summary false,
-
-    :hide "never",
-
-    :shell "system",
-    :allow_concurrent_runs false}})
-
-(defn add-zed-repl-tasks [tasks-file timestamp]
-  (let [tasks     (read-tasks tasks-file)
+(defn add-zed-repl-tasks [tasks-file base-url timestamp]
+  (let [tasks    (read-tasks tasks-file)
+        task-set (->> (zed-repl-tasks base-url)
+                      (map :label)
+                      (into #{}))
         new-tasks (->> tasks
-                       (remove (fn [t] (contains? zed-repl-tasks (:label t))))
-                       (concat (vals zed-repl-tasks)))
+                       (remove (fn [t] (contains? task-set (:label t))))
+                       (concat (zed-repl-tasks base-url)))
         new-json  (json/generate-string new-tasks {:pretty true})]
     (cond
       (= tasks new-tasks) :skip
@@ -85,4 +81,6 @@
           (spit tasks-file new-json)
           :created))))
 
-(comment (add-zed-repl-tasks ".zed/tasks.json" (System/currentTimeMillis)))
+(comment (add-zed-repl-tasks ".zed/tasks.json"
+                             "http://localhost:3000"
+                             (System/currentTimeMillis)))
