@@ -101,8 +101,7 @@
     (eval-response (promt ns (format "(eval (slurp %s))" file)) ch)))
 
 (def routes
-  ["/" {"eval" {[:action] {:post #'eval-handler}
-                :post #'eval-handler}
+  ["/" {"eval" {:post #'eval-handler}
         "eval-at-point" {:post #'eval-at-point-handler}
         "eval-file" {:post #'eval-file-handler}}])
 
