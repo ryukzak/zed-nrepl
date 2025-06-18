@@ -26,7 +26,7 @@
                (str (subs code 0 (- max-code-len 10))
                     "\n... "
                     (subs code (- (count code) 5))))]
-    (str ns (colors/bold (colors/green "=> ")) code "\n")))
+    (str ";; Input\n" ns (colors/bold (colors/green "=> ")) code "\n\n")))
 
 (defn repl-out [msg]
   (cond
@@ -40,7 +40,7 @@
         (catch Exception _ (misc/return-suffix (:value msg)))))
 
     (contains? msg :value)
-    (colors/bold (misc/pp-return (edn/read-string (:value msg))))
+    (str "\n;; Result\n" (colors/bold (misc/pp-return (edn/read-string (:value msg)))))
 
     (:err msg) (str "Error:\n"
                     (->> (str/split (:err msg) #"\n")
@@ -61,6 +61,7 @@
              (fn [ostream]
                (let [w (io/make-writer ostream {})]
                  (.write w promt)
+                 (.write w ";; Output\n")
                  (loop [msg (<!! ch)]
                    (when msg
                      (when-let [out (repl-out msg)]
