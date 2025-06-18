@@ -68,7 +68,7 @@
         (is (.exists (io/file test-tasks-file)))
         (let [tasks (tasks/read-tasks test-tasks-file)]
           (is (has-zed-repl-task? tasks) "Tasks should include zed-repl task")
-          (is (= 3 (count tasks)))))
+          (is (= 4 (count tasks)))))
       (finally (cleanup-test-dir))))
 
   (testing "Updating existing tasks file without zed-repl task"
@@ -80,7 +80,7 @@
         (is (.exists (io/file (str test-tasks-file "." test-timestamp ".bak"))))
         (let [tasks (tasks/read-tasks test-tasks-file)]
           (is (has-zed-repl-task? tasks) "Tasks should include zed-repl task")
-          (is (= 4 (count tasks)))
+          (is (= 5 (count tasks)))
           (is (some #(= (:label %) "Existing Task") tasks))))
       (finally (cleanup-test-dir))))
 
