@@ -55,7 +55,16 @@ Add this to your Zed key bindings configuration for a more efficient workflow:
   {
     "context": "Workspace",
     "bindings": {
-      "ctrl-x ctrl-e": ["task::Spawn", { "task_name": "Eval selected code (zed-repl)" }]
+      "alt-7": ["task::Spawn", { "task_name": "Eval selected code (zed-repl)" }],
+
+      "alt-*": ["task::Spawn", { "task_name": "Eval code at point (zed-repl)" }],
+      "alt-8": ["workspace::SendKeystrokes", "cmd-s alt-*"],
+
+      "alt-(": ["task::Spawn", { "task_name": "Eval file (zed-repl)" }],
+      "alt-9": ["workspace::SendKeystrokes", "cmd-s alt-("],
+
+      "alt-)": ["task::Spawn", { "task_name": "Run tests (zed-repl)" }],
+      "alt-0": ["workspace::SendKeystrokes", "cmd-s alt-)"]
     }
   }
 ]
