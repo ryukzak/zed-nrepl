@@ -32,6 +32,8 @@
                 (cond
                   (str/ends-with? (name k) "_base64")
                   (str "\\\"" (name k) "\\\": \\\"$( echo -n \"$" v "\" | base64 )\\\"")
+                  (str/ends-with? (name k) "_imm")
+                  (str "\\\"" (str/replace (name k) "_imm" "") "\\\": \\\"$( echo -n \"" v "\" | base64 )\\\"")
                   :else
                   (str "\\\"" (name k) "\\\": \\\"$" v "\\\""))))
          (str/join ","))
@@ -49,6 +51,10 @@
               "Eval selected code" "/eval"
               {:file "ZED_FILE"
                :code_base64 "ZED_SELECTED_TEXT"})
+   (curl-task base-url
+              "Run tests" "/eval"
+              {:file "ZED_FILE"
+               :code_base64_imm "(use 'clojure.test) (run-tests)"})
    (curl-task base-url
               "Eval code at point" "/eval-at-point"
               {:file "ZED_FILE"

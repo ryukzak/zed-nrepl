@@ -10,6 +10,10 @@
   (String. (.decode (Base64/getDecoder)
                     to-decode)))
 
+(defn encode64 [to-encode]
+  (.encodeToString (Base64/getEncoder)
+                   (.getBytes to-encode "UTF-8")))
+
 (defn pp [m]
   (with-out-str (pprint/pprint m)))
 
