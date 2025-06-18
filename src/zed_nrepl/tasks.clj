@@ -71,8 +71,12 @@
                       (into #{}))
         new-tasks (->> tasks
                        (remove (fn [t] (contains? task-set (:label t))))
-                       (concat (zed-repl-tasks base-url)))
-        new-json  (json/generate-string new-tasks {:pretty true})]
+                       (concat (zed-repl-tasks base-url))
+                       (sort-by :label))
+        new-json  (json/generate-string new-tasks
+                                        {:pretty (json/create-pretty-printer
+                                                  (assoc json/default-pretty-print-options
+                                                         :indent-arrays? true))})]
     (cond
       (= tasks new-tasks) :skip
 
