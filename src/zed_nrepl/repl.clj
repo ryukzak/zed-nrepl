@@ -67,7 +67,8 @@
 
               responses
               (nrepl/message client {:op   "eval"
-                                     :code code
+                                     :code (or code
+                                               (slurp file))
                                      :ns   ns})]
           (>! c ns)
           (doseq [response responses]

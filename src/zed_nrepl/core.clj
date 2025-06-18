@@ -76,7 +76,10 @@
          ch :chan} (repl/eval-by-nrepl-chan
                     {:host "localhost" :port (:port @nrepl-server)}
                     {:file file :code code})]
-    (eval-response (promt ns code) ch)))
+
+    (eval-response (promt ns (or code
+                                 (str "file:" file)))
+                   ch)))
 
 (defn eval-at-point-handler [request]
   (let [file (some-> request :body :file)
@@ -156,5 +159,4 @@
   (start-bridge-server))
 
 (comment
-  (start-bridge-server)
   (-main))
